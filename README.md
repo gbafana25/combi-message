@@ -62,5 +62,3 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
   - websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
   - udp: strings separated by delimiter
 - simply api to get/set endpoints, check if key/device exists
-- move splash/home page into separate module, add to router on main tsx file
-- create signup page, connect login and signup to backend

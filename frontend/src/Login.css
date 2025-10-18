@@ -62,3 +62,7 @@ button
 {
   background: #5C8AE6;
 }
+
+.login-title {
+  text-align: center;
+}

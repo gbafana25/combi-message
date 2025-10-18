@@ -1,16 +1,35 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import "./Login.css";
+import axios from 'axios';
+import Cookies from 'js-cookie';
+import { Navigate, redirect, useNavigate } from 'react-router-dom';
 
 function Login() {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    if(Cookies.get("token")) {
+      navigate('/profile')
+    }
+  })
+
+  
 
   const handleSubmit = (event: any) => {
     event.preventDefault();
     // Handle login logic here (e.g., send data to a backend)
-    console.log('Username:', username, 'Password:', password);
+    console.log('Username:', email, 'Password:', password);
+    axios.post("http://localhost:5150/api/auth/login", {
+      email: email,
+      password: password
+    }).then(resp => {
+      Cookies.set('token', resp.data.token)
+      navigate("/profile")
+    })
     // Clear form fields after submission
-    setUsername('');
+    setEmail('');
     setPassword('');
   };
 
@@ -19,24 +38,25 @@ function Login() {
       <h2 className="login-title">Login</h2>
       <form onSubmit={handleSubmit} id='login-form'>
       <div className='group'>
-        <label htmlFor="username" className='label'>Username:</label>
+        <label htmlFor="email-field">Email:</label>
         <input
-          type="text"
-          id="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
+          type="email"
+          id="email-field"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
           required
           className='input'
         />
       </div>
       <div>
-        <label htmlFor="password">Password:</label>
+        <label htmlFor="password-field">Password:</label>
         <input
           type="password"
-          id="password"
+          id="password-field"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           required
+          className='input'
         />
       </div>
       <button id="login" type="submit">Login</button>

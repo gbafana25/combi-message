@@ -1,5 +1,8 @@
 import Login from './Login';
 import { BrowserRouter, Routes, Route, Link, Form, Router } from 'react-router-dom';
+import Signup from './Signup';
+import Home from './Home';
+import Profile from './Profile';
 
 
 export const LocoSplash = () => {
@@ -39,15 +42,20 @@ export const LocoSplash = () => {
             <li className="">
               <a href="/login">Login</a>
             </li>
+            <li>
+              <a href="/signup">Signup</a>
+            </li>
           </ul>
         </div>
       </header>
-      <div className="logo">
-        <h1>Frigata: simple key-value store api</h1>
-        <img src="https://loco.rs/icon.svg" className="logo" alt="Loco logo" />  
+      <div>
+         
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login/>}/>
+            <Route path="/signup" element={<Signup/>}/>
+            <Route path="/" element={<Home/>}/>
+            <Route path="/profile" element={<Profile/>}/>
           </Routes>
         </BrowserRouter>
           
