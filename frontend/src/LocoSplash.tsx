@@ -1,9 +1,13 @@
+import Login from './Login';
+import { BrowserRouter, Routes, Route, Link, Form, Router } from 'react-router-dom';
+
+
 export const LocoSplash = () => {
   return (
     <div>
       <header className="navbar fixed-top">
         <div className="container">
-          <a href="https://loco.rs?ref=starter">Loco</a>
+          
           <ul className="navbar-nav ">
             <li className="">
               <a
@@ -29,77 +33,25 @@ export const LocoSplash = () => {
                 </svg>
               </a>
             </li>
+            <li>
+              <a href="/">Home</a>
+            </li>
             <li className="">
-              <a
-                className=""
-                href="https://github.com/loco-rs/loco/stargazers?ref=starter"
-                target="_blank"
-                rel="noreferrer"
-              >
-                <svg
-                  xmlns="http://www.w3.org/2000/svg"
-                  width="20"
-                  height="20"
-                  viewBox="0 0 24 24"
-                  fill="none"
-                  stroke="currentColor"
-                  stroke-width="2"
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  className="feather feather-star"
-                >
-                  <title>Loco GitHub stars</title>
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-                </svg>
-              </a>
+              <a href="/login">Login</a>
             </li>
           </ul>
         </div>
       </header>
       <div className="logo">
-        <h1>Loco: SaaS application</h1>
-        <img src="https://loco.rs/icon.svg" className="logo" alt="Loco logo" />
+        <h1>Frigata: simple key-value store api</h1>
+        <img src="https://loco.rs/icon.svg" className="logo" alt="Loco logo" />  
+        <BrowserRouter>
+          <Routes>
+            <Route path="/login" element={<Login/>}/>
+          </Routes>
+        </BrowserRouter>
+          
       </div>
-      <footer>
-        <ul>
-          <li>
-            <a
-              href="https://loco.rs?ref=starter"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Our Documentation
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://github.com/loco-rs/loco?ref=starter"
-              target="_blank"
-              rel="noreferrer"
-            >
-              GitHub
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://github.com/loco-rs/loco/issues?ref=starter"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Found a bug?
-            </a>
-          </li>
-          <li>
-            <a
-              href="https://github.com/loco-rs/loco/discussions?ref=starter"
-              target="_blank"
-              rel="noreferrer"
-            >
-              Needs help?
-            </a>
-          </li>
-        </ul>
-      </footer>
     </div>
   );
 };

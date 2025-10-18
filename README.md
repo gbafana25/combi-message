@@ -58,5 +58,9 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
-- udp
+- implement api over websockets and udp
+  - websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
+  - udp: strings separated by delimiter
+- simply api to get/set endpoints, check if key/device exists
+- move splash/home page into separate module, add to router on main tsx file
+- create signup page, connect login and signup to backend
