@@ -61,4 +61,5 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
 - implement api over websockets and udp
   - websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
   - udp: strings separated by delimiter
-- simply api to get/set endpoints, check if key/device exists
+- simplify api to get/set endpoints, check if key/device exists
+- generate api key for new accounts

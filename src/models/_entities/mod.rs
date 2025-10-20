@@ -2,5 +2,6 @@
 
 pub mod prelude;
 
+pub mod apikeys;
 pub mod messages;
 pub mod users;
