@@ -1,7 +1,7 @@
 use crate::{
     mailers::auth::AuthMailer,
     models::{
-        _entities::users,
+        _entities::{apikeys, users},
         users::{LoginParams, RegisterParams},
     },
     views::auth::{CurrentResponse, LoginResponse},
@@ -162,7 +162,8 @@ async fn login(State(ctx): State<AppContext>, Json(params): Json<LoginParams>) -
 #[debug_handler]
 async fn current(auth: auth::JWT, State(ctx): State<AppContext>) -> Result<Response> {
     let user = users::Model::find_by_pid(&ctx.db, &auth.claims.pid).await?;
-    format::json(CurrentResponse::new(&user))
+    let key = apikeys::Model::find_by_userid(&ctx.db, user.id).await?;
+    format::json(CurrentResponse::new(&user, &key))
 }
 
 /// Magic link authentication provides a secure and passwordless way to log in to the application.

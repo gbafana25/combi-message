@@ -16,6 +16,7 @@ pub struct Model {
     #[sea_orm(column_type = "Text", nullable)]
     pub value: Option<String>,
     pub device_name: Option<String>,
+    pub isprivate: Option<i32>,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

@@ -6,13 +6,14 @@ use axum::debug_handler;
 use sea_orm::QueryOrder;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{_entities::messages, messages::{ActiveModel, Entity, Model}};
+use crate::models::{_entities::{apikeys, messages}, messages::{ActiveModel, Entity, Model}};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Params {
     pub device_name: Option<String>,
     pub key: Option<String>,
-    pub value: Option<String>
+    pub value: Option<String>,
+    pub api_key: Option<String>,
 }
 
 impl Params {
@@ -30,9 +31,16 @@ pub async fn index(State(_ctx): State<AppContext>) -> Result<Response> {
 }
 
 pub async fn load_item(ctx: &AppContext, device_name: String) -> Result<Model> { 
-    let item = Entity::find().filter(
+    let item = messages::Entity::find().filter(
         messages::Column::DeviceName.eq(device_name))
         .order_by(messages::Column::CreatedAt, sea_orm::Order::Desc)
+        .one(&ctx.db).await?;
+    item.ok_or_else(|| Error::NotFound)
+}
+
+pub async fn load_from_key(ctx: &AppContext, key: String) -> Result<Model> {
+    let item = messages::Entity::find().filter(
+        messages::Column::Key.eq(key))
         .one(&ctx.db).await?;
     item.ok_or_else(|| Error::NotFound)
 }
@@ -44,16 +52,39 @@ pub async fn list(device_name: String, ctx: &AppContext) -> Result<Response> {
     format::json(res)
 }
 
-pub async fn add(State(ctx): State<AppContext>, Json(params): Json<Params>) -> Result<Response> {
-    let mut activeitem: ActiveModel = Default::default();
-    params.update(&mut activeitem);
-    let item = activeitem.insert(&ctx.db).await?;
-    format::json(item)
+pub async fn set(State(ctx): State<AppContext>, Json(params): Json<Params>) -> Result<Response> {
+    let paramsclone = params.clone();
+    let keysearchval: String = paramsclone.key.unwrap();
+    let deviceval: String = paramsclone.device_name.unwrap();
+    let apikey: String = paramsclone.api_key.unwrap();
+    let Ok(message) = messages::Model::find_by_key(&ctx.db, &keysearchval, &deviceval).await else {
+        let mut activeitem: ActiveModel = Default::default();
+        if !apikey.is_empty() && apikeys::Model::verify_key(&ctx.db, apikey).await {
+            activeitem.isprivate = Set(Some(1));
+        } else {
+            activeitem.isprivate = Set(Some(0));
+        }
+        params.update(&mut activeitem);
+        let item = activeitem.insert(&ctx.db).await?;
+        return format::json(item);
+    };
+
+    //message.value = params.value;
+    let mut modified_item: ActiveModel = message.into();
+    modified_item.value = Set(params.value.to_owned());
+    let ret_item = modified_item.update(&ctx.db).await?;
+    return format::json(ret_item);
+    
 }
 
 pub async fn get_one(Path(device_name): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
     format::json(load_item(&ctx, device_name).await?)
 }
+
+pub async fn get_by_key(Path(key): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
+    format::json(load_from_key(&ctx, key).await?)
+}
+
 
 pub async fn get_all(Path(device_name): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
     list(device_name, &ctx).await
@@ -63,7 +94,8 @@ pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/messages/")
         .add("/", get(index))
-        .add("/add", post(add))
+        .add("/set", post(set))
+        .add("/get/{key}", get(get_by_key))
         .add("/get-latest/{device_name}", get(get_one))
         .add("/get-all/{device_name}", get(get_all))
 }

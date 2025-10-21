@@ -1,4 +1,7 @@
+use loco_rs::{model::{ModelError, ModelResult}, prelude::model};
 use sea_orm::entity::prelude::*;
+use crate::models::_entities::apikeys;
+
 pub use super::_entities::apikeys::{ActiveModel, Model, Entity};
 pub type Apikeys = Entity;
 
@@ -19,7 +22,34 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // implement your read-oriented logic here
-impl Model {}
+impl Model {
+    pub async fn find_by_userid(db: &DatabaseConnection, id: i32) -> ModelResult<Self> {
+        let key = apikeys::Entity::find()
+            .filter(
+                model::query::condition()
+                    .eq(apikeys::Column::UserId, id)
+                    .build()
+            )
+            .one(db)
+            .await?;
+        key.ok_or_else(|| ModelError::EntityNotFound)
+    }
+    
+    pub async fn verify_key(db: &DatabaseConnection, apikey: String) -> bool {
+        match apikeys::Entity::find()
+        .filter(
+            model::query::condition()
+            .eq(apikeys::Column::Value, apikey)
+            .build()
+        )
+        .one(db)
+        .await {
+            Ok(_) => return true,
+            Err(_) => return false,
+        }
+        
+    }
+}
 
 // implement your write-oriented logic here
 impl ActiveModel {}

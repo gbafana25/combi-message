@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::models::_entities::users;
+use crate::models::_entities::{apikeys, users};
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct LoginResponse {
@@ -27,15 +27,17 @@ pub struct CurrentResponse {
     pub pid: String,
     pub name: String,
     pub email: String,
+    pub apikey: String,
 }
 
 impl CurrentResponse {
     #[must_use]
-    pub fn new(user: &users::Model) -> Self {
+    pub fn new(user: &users::Model, apikey: &apikeys::Model) -> Self {
         Self {
             pid: user.pid.to_string(),
             name: user.name.clone(),
             email: user.email.clone(),
+            apikey: apikey.value.clone().unwrap(),
         }
     }
 }

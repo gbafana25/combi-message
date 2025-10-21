@@ -1,8 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import "./Login.css";
 import axios from 'axios';
 import Cookies from 'js-cookie';
-import { Navigate, redirect, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 
 function Login() {
   const [email, setEmail] = useState('');
@@ -10,6 +10,7 @@ function Login() {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // validate token
     if(Cookies.get("token")) {
       navigate('/profile')
     }

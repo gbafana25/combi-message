@@ -1,4 +1,7 @@
+use loco_rs::model::{self, ModelError, ModelResult};
 use sea_orm::entity::prelude::*;
+use crate::models::_entities::messages;
+
 pub use super::_entities::messages::{ActiveModel, Model, Entity};
 pub type Messages = Entity;
 
@@ -19,7 +22,20 @@ impl ActiveModelBehavior for ActiveModel {
 }
 
 // implement your read-oriented logic here
-impl Model {}
+impl Model {
+    pub async fn find_by_key(db: &DatabaseConnection, key: &str, dev: &str) -> ModelResult<Self> {
+        let message = messages::Entity::find()
+            .filter(
+                model::query::condition()
+                .eq(messages::Column::Key, key)
+                .eq(messages::Column::DeviceName, dev)
+                .build()
+            )
+            .one(db)
+            .await?;
+        message.ok_or_else(|| ModelError::EntityNotFound)
+    }
+}
 
 // implement your write-oriented logic here
 impl ActiveModel {}

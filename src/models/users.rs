@@ -1,9 +1,12 @@
 use async_trait::async_trait;
 use chrono::{offset::Local, Duration};
 use loco_rs::{auth::jwt, hash, prelude::*};
+use rand::{distributions::Alphanumeric, thread_rng, Rng};
 use serde::{Deserialize, Serialize};
 use serde_json::Map;
 use uuid::Uuid;
+
+use crate::models::_entities::apikeys;
 
 pub use super::_entities::users::{self, ActiveModel, Entity, Model};
 
@@ -213,6 +216,15 @@ impl Model {
         hash::verify_password(password, &self.password)
     }
 
+    pub fn generate_random_string() -> String {
+        let rstr: String = thread_rng()
+            .sample_iter(&Alphanumeric)
+            .take(24)
+            .map(char::from)
+            .collect();
+        return rstr;
+    }
+
     /// Asynchronously creates a user with a password and saves it to the
     /// database.
     ///
@@ -244,6 +256,14 @@ impl Model {
             email: ActiveValue::set(params.email.to_string()),
             password: ActiveValue::set(password_hash),
             name: ActiveValue::set(params.name.to_string()),
+            ..Default::default()
+        }
+        .insert(&txn)
+        .await?;
+
+        let newapikey = apikeys::ActiveModel {
+            value: ActiveValue::set(Some(Self::generate_random_string())),
+            user_id: ActiveValue::set(user.id),
             ..Default::default()
         }
         .insert(&txn)

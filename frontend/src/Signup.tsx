@@ -1,11 +1,13 @@
 import { useState } from "react";
 import "./Login.css";
 import axios from "axios";
+import { useNavigate } from "react-router-dom";
 
 function Signup() {
     const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [email, setEmail] = useState('');
+    const navigate = useNavigate();
 
     const handleSubmit = (event: any) => {
     event.preventDefault();
@@ -15,6 +17,8 @@ function Signup() {
         name: username,
         password: password,
         email: email
+    }).then(resp => {
+        navigate("/login");
     })
     // Clear form fields after submission
     setUsername('');
