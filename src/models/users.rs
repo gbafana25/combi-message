@@ -261,7 +261,7 @@ impl Model {
         .insert(&txn)
         .await?;
 
-        let newapikey = apikeys::ActiveModel {
+        let _newapikey = apikeys::ActiveModel {
             value: ActiveValue::set(Some(Self::generate_random_string())),
             user_id: ActiveValue::set(user.id),
             ..Default::default()
