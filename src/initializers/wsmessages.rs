@@ -44,7 +44,7 @@ impl Initializer for WsMessageInitializer {
         let (layer, io) = SocketIo::builder()
             .build_layer();
 
-        io.ns("/", |s: SocketRef| {
+        io.ns("/ws", |s: SocketRef| {
             s.on(
                 "new message",
                 |s: SocketRef, Data::<String>(msg), Extension::<Username>(username)| {
@@ -80,7 +80,7 @@ impl Initializer for WsMessageInitializer {
 
         let router = router.layer(
             ServiceBuilder::new()
-                .layer(CorsLayer::permissive())
+                .layer(CorsLayer::very_permissive())
                 .layer(layer),
         );
 

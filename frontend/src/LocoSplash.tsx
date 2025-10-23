@@ -3,9 +3,22 @@ import { BrowserRouter, Routes, Route, Link, Form, Router } from 'react-router-d
 import Signup from './Signup';
 import Home from './Home';
 import Profile from './Profile';
+import { useEffect } from 'react';
+import SockJS from 'sockjs-client';
 
 
 export const LocoSplash = () => {
+  useEffect(() => {
+    var socket = new SockJS("http://localhost:5150/ws")
+    socket.onmessage = function(d) {
+      console.log(d.data)
+    }
+
+    socket.onopen = function() {
+      socket.send("new message")
+    }
+  })
+
   return (
     <div>
       <header className="navbar fixed-top">
