@@ -18,25 +18,10 @@ pub struct GetPrivateParams {
 pub struct SetPrivateParams {
     pub key: String,
     pub value: String,
-    pub api_key: String
+    pub api_key: Option<String>
 }
 
 impl SetPrivateParams {
-    fn update(&self, item: &mut ActiveModel, device: String) {
-        item.key = Set(Some(self.key.clone()));
-        item.value = Set(Some(self.value.clone()));
-        item.device_name = Set(Some(device));
-        item.msg_id = Set(Uuid::new_v4());
-    }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct SetPublicParams {
-    pub key: String,
-    pub value: String
-}
-
-impl SetPublicParams {
     fn update(&self, item: &mut ActiveModel, device: String) {
         item.key = Set(Some(self.key.clone()));
         item.value = Set(Some(self.value.clone()));
@@ -81,44 +66,40 @@ pub async fn list_all(device_name: String, ctx: &AppContext) -> Result<Response>
     format::json(res)
 }
 
-pub async fn set_private(State(ctx): State<AppContext>, Path(device_name): Path<String>, Query(params): Query<SetPrivateParams>) -> Result<Response> {
+pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>, Query(params): Query<SetPrivateParams>) -> Result<Response> {
     let paramsclone = params.clone();
     let keysearchval: String = paramsclone.key;
-    let apikey: String = paramsclone.api_key;
-    let Ok(message) = messages::Model::find_by_key(&ctx.db, &keysearchval, &device_name).await else {
-        let mut activeitem: ActiveModel = Default::default();
-        let Ok(_) = apikeys::Model::verify_key(&ctx.db, apikey).await else {
-            return bad_request("Couldn't find message");
-        };
-        activeitem.isprivate = Set(Some(1));
-        params.update(&mut activeitem, device_name);
-        let item = activeitem.insert(&ctx.db).await?;
-        return format::json(item);
-    };
-    let Ok(_) = apikeys::Model::verify_key(&ctx.db, apikey).await else {
-        return bad_request("Couldn't find message");
-    };
-    let mut modified_item: ActiveModel = message.into();
-    modified_item.value = Set(Some(params.value.to_owned()));
-    let ret_item = modified_item.update(&ctx.db).await?;
-    return format::json(ret_item);
-}
+    let mut isprivate = 0;
+    // verify key and set isprivate variable
+    match params.api_key {
+        Some(ref akey) => {
+            let Ok(_) = apikeys::Model::verify_key(&ctx.db, akey).await else {
+                return bad_request("Invalid API key");
+            };
+            isprivate = 1;
+        },
+        None => {
+            // public
+            isprivate = 0;
+        }
+    }
 
-pub async fn set_public(State(ctx): State<AppContext>, Path(device_name): Path<String>, Query(params): Query<SetPublicParams>) -> Result<Response> {
-    let paramsclone = params.clone();
-    let keysearchval: String = paramsclone.key;
+    // message already exists
     let Ok(message) = messages::Model::find_by_key(&ctx.db, &keysearchval, &device_name).await else {
         let mut activeitem: ActiveModel = Default::default();
-        activeitem.isprivate = Set(Some(0));
-        params.update(&mut activeitem, device_name);
+        params.update(&mut activeitem, device_name);   
+        activeitem.isprivate = Set(Some(isprivate));
         let item = activeitem.insert(&ctx.db).await?;
         return format::json(item);
+
+        
     };
 
     let mut modified_item: ActiveModel = message.into();
     modified_item.value = Set(Some(params.value.to_owned()));
     let ret_item = modified_item.update(&ctx.db).await?;
     return format::json(ret_item);
+
 }
 
 pub async fn get_one(Path(device_name): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
@@ -134,7 +115,7 @@ pub async fn get_all_with_private(Path(device_name): Path<String>, Query(api_key
 
     match api_key.api_key {
         Some(akey) => {
-            let Ok(_) = apikeys::Model::verify_key(&ctx.db, akey).await else {
+            let Ok(_) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
                 return bad_request("Invalid api key");
             };
             return list_all(device_name, &ctx).await;
@@ -151,8 +132,7 @@ pub fn routes() -> Routes {
     Routes::new()
         .prefix("api/messages/")
         .add("/", get(index))
-        .add("/set/private/{device_name}", get(set_private))
-        .add("/set/{device_name}", get(set_public))
+        .add("/set/{device_name}", get(set))
         .add("/get-latest/{device_name}", get(get_one))
         .add("/get/{device_name}", get(get_all_with_private)) // public + private
 }

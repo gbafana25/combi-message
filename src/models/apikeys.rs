@@ -35,14 +35,14 @@ impl Model {
         key.ok_or_else(|| ModelError::EntityNotFound)
     }
     
-    pub async fn verify_key(db: &DatabaseConnection, apikey: String) -> ModelResult<Self> {
+    pub async fn verify_key(db: &DatabaseConnection, apikey: &String) -> ModelResult<Self> {
         if apikey.is_empty() {
             return Err(ModelError::EntityNotFound);
         }
         let key = apikeys::Entity::find()
         .filter(
             model::query::condition()
-            .eq(apikeys::Column::Value, &apikey)
+            .eq(apikeys::Column::Value, apikey)
             .build()
         )
         .one(db)

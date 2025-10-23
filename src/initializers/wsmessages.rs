@@ -40,7 +40,7 @@ impl Initializer for WsMessageInitializer {
         "websocket-messages".to_string()
     }
 
-    async fn after_routes(&self, router: AxumRouter, ctx: &AppContext) -> Result<AxumRouter> {
+    async fn after_routes(&self, router: AxumRouter, _ctx: &AppContext) -> Result<AxumRouter> {
         let (layer, io) = SocketIo::builder()
             .build_layer();
 
