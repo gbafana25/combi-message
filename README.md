@@ -62,4 +62,3 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
   - websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
   - udp: strings separated by delimiter
 - in `set_private` (messages controller), move some repeated logic to Model or other functions
-- add key filter to (optional query param) to get

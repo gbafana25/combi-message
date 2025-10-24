@@ -4,20 +4,25 @@ import Signup from './Signup';
 import Home from './Home';
 import Profile from './Profile';
 import { useEffect } from 'react';
-import SockJS from 'sockjs-client';
+import { io } from 'socket.io-client';
 
+const socket = io("http://localhost:5150")
 
 export const LocoSplash = () => {
   useEffect(() => {
-    var socket = new SockJS("http://localhost:5150/ws")
-    socket.onmessage = function(d) {
-      console.log(d.data)
-    }
+    //var socket = new SockJS("http://localhost:5150/")
+    
+    
+    socket.on("connected", (d) => {
+      console.log(d);
+    });
 
-    socket.onopen = function() {
-      socket.send("new message")
-    }
-  })
+
+  }, [])
+
+  const sendGet = () => {
+    socket.emit("set", { key: "testkey", value: "testvalue"})
+  }
 
   return (
     <div>
@@ -62,7 +67,7 @@ export const LocoSplash = () => {
         </div>
       </header>
       <div>
-         
+        
         <BrowserRouter>
           <Routes>
             <Route path="/login" element={<Login/>}/>
@@ -73,6 +78,7 @@ export const LocoSplash = () => {
         </BrowserRouter>
           
       </div>
+      <button onClick={sendGet}>Test websocket</button> 
     </div>
   );
 };

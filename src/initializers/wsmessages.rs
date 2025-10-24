@@ -1,8 +1,10 @@
 use async_trait::async_trait;
+use axum::routing::get;
 use loco_rs::app::{AppContext, Initializer};
 use loco_rs::Result;
 use serde::{Deserialize, Serialize};
-use socketioxide::extract::{Data, Extension, SocketRef};
+use serde_json::Value;
+use socketioxide::extract::{AckSender, Data, Extension, SocketRef};
 use socketioxide::SocketIo;
 use axum::{Router as AxumRouter};
 use tower::ServiceBuilder;
@@ -34,6 +36,30 @@ enum Res {
     },
 }
 
+#[derive(Serialize, Deserialize)]
+struct Message {
+    key: String,
+    value: String,
+}
+
+fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
+    socket.emit("connected", &data).ok();
+
+    socket.on(
+        "set",
+        |socket: SocketRef, Data::<Message>(data)| {
+            socket.emit("set-return", &data).ok();
+        },
+    );
+
+    socket.on(
+        "get",
+        |Data::<Value>(data), ack: AckSender| {
+            ack.send(&data).ok();
+        }
+    );
+}
+
 #[async_trait]
 impl Initializer for WsMessageInitializer {
     fn name(&self) -> String {
@@ -44,45 +70,13 @@ impl Initializer for WsMessageInitializer {
         let (layer, io) = SocketIo::builder()
             .build_layer();
 
-        io.ns("/ws", |s: SocketRef| {
-            s.on(
-                "new message",
-                |s: SocketRef, Data::<String>(msg), Extension::<Username>(username)| {
-                    let msg = &Res::Message {
-                        username,
-                        message: msg,
-                    };
-                    s.broadcast().emit("new message", msg).ok();
-                },
-            );
-
-            s.on("typing", |s: SocketRef, Extension::<Username>(username)| {
-                s.broadcast()
-                    .emit("typing", &Res::Username { username })
-                    .ok();
-            });
-
-            s.on(
-                "stop typing",
-                |s: SocketRef, Extension::<Username>(username)| {
-                    s.broadcast()
-                        .emit("stop typing", &Res::Username { username })
-                        .ok();
-                },
-            );
-
-            s.on_disconnect(
-                |s: SocketRef, Extension::<Username>(username)| {
-                    s.broadcast().emit("user left", &username).ok();
-                },
-            );
-        });
+        io.ns("/", on_connect);
 
         let router = router.layer(
             ServiceBuilder::new()
                 .layer(CorsLayer::very_permissive())
                 .layer(layer),
-        );
+        ).route("/", get(|| async {"connected"}));
 
         Ok(router)
     }
