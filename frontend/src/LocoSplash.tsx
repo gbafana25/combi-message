@@ -10,12 +10,14 @@ const socket = io("http://localhost:5150")
 
 export const LocoSplash = () => {
   useEffect(() => {
-    //var socket = new SockJS("http://localhost:5150/")
-    
     
     socket.on("connected", (d) => {
-      console.log(d);
+      console.log("Connected to socketio server "+d);
     });
+
+    socket.on("set-return", (data) => {
+      console.log("return received "+data.key+" "+data.value);
+    })
 
 
   }, [])

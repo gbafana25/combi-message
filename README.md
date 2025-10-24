@@ -59,6 +59,7 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
 
 ## TODO
 - implement api over websockets and udp
-  - websockets: look at socketioxide (https://github.com/Totodore/socketioxide), example: https://github.com/loco-rs/chat-rooms
+  - websockets: basic functionality working, implement set/get requests
   - udp: strings separated by delimiter
+- axum sessions
 - in `set_private` (messages controller), move some repeated logic to Model or other functions

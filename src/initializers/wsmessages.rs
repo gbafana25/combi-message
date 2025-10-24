@@ -1,40 +1,17 @@
 use async_trait::async_trait;
+use axum::http::HeaderValue;
 use axum::routing::get;
 use loco_rs::app::{AppContext, Initializer};
 use loco_rs::Result;
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
-use socketioxide::extract::{AckSender, Data, Extension, SocketRef};
+use socketioxide::extract::{AckSender, Data, SocketRef};
 use socketioxide::SocketIo;
 use axum::{Router as AxumRouter};
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 
 pub struct WsMessageInitializer;
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-struct Username(String);
-
-#[derive(Deserialize, Serialize, Debug, Clone)]
-#[serde(rename_all = "camelCase", untagged)]
-enum Res {
-    Login {
-        #[serde(rename = "numUsers")]
-        num_users: usize,
-    },
-    UserEvent {
-        #[serde(rename = "numUsers")]
-        num_users: usize,
-        username: Username,
-    },
-    Message {
-        username: Username,
-        message: String,
-    },
-    Username {
-        username: Username,
-    },
-}
 
 #[derive(Serialize, Deserialize)]
 struct Message {
@@ -48,6 +25,7 @@ fn on_connect(socket: SocketRef, Data(data): Data<Value>) {
     socket.on(
         "set",
         |socket: SocketRef, Data::<Message>(data)| {
+            println!("Received set command: {}, {}", data.key, data.value);
             socket.emit("set-return", &data).ok();
         },
     );
@@ -70,11 +48,13 @@ impl Initializer for WsMessageInitializer {
         let (layer, io) = SocketIo::builder()
             .build_layer();
 
+        let corslayer = CorsLayer::new().allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap());
+
         io.ns("/", on_connect);
 
         let router = router.layer(
             ServiceBuilder::new()
-                .layer(CorsLayer::very_permissive())
+                .layer(corslayer)
                 .layer(layer),
         ).route("/", get(|| async {"connected"}));
 
