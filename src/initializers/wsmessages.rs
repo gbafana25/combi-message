@@ -3,7 +3,8 @@ use axum::http::HeaderValue;
 use axum::routing::get;
 use loco_rs::app::{AppContext, Initializer};
 use loco_rs::Result;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::ActiveValue::Set;
+use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use socketioxide::extract::{Data, SocketRef};
@@ -11,8 +12,10 @@ use socketioxide::SocketIo;
 use axum::{Router as AxumRouter};
 use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
+use uuid::Uuid;
 
 use crate::models::_entities::messages;
+use crate::models::messages::ActiveModel;
 
 pub struct WsMessageInitializer;
 
@@ -20,6 +23,22 @@ pub struct WsMessageInitializer;
 struct Message {
     devicename: String,
     value: String,
+}
+
+#[derive(Serialize, Deserialize)]
+struct SetMessage {
+    devicename: String,
+    key: String,
+    value: String
+}
+
+impl SetMessage {
+    fn update(&self, item: &mut ActiveModel, device: String) {
+        item.key = Set(Some(self.key.clone()));
+        item.value = Set(Some(self.value.clone()));
+        item.device_name = Set(Some(device));
+        item.msg_id = Set(Uuid::new_v4());
+    }
 }
 
 #[derive(Serialize, Deserialize)]
@@ -42,6 +61,7 @@ impl Initializer for WsMessageInitializer {
         let (layer, io) = SocketIo::builder()
             .build_layer();
         let ctcopy = ctx.clone();
+        let c2 = ctx.clone();
         //let dbconn = ctcopy.db.to_owned();
 
         let corslayer = CorsLayer::new().allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap());
@@ -52,9 +72,25 @@ impl Initializer for WsMessageInitializer {
 
             socket.on(
                 "set",
-                |socket: SocketRef, Data::<Message>(data)| {
-                    println!("Received set command: {}, {}", data.devicename, data.value);
-                    socket.emit("set-return", &data).ok();
+                async |socket: SocketRef, Data::<SetMessage>(data)| {
+                    let dbcopy = c2;
+                    match messages::Model::find_by_key(&dbcopy.db, &data.key, &data.devicename).await {
+                        Ok(msg) => {
+                            let mut modified_item: ActiveModel = msg.into();
+                            modified_item.value = Set(Some(data.value));
+                            let ret_item = modified_item.update(&dbcopy.db).await.unwrap();
+                            socket.emit("set-return", &ret_item).ok();
+                        },
+                        Err(_) => {
+                            let mut activeitem: ActiveModel = Default::default();
+                            data.update(&mut activeitem, data.devicename.clone());
+                            activeitem.isprivate = Set(Some(0));
+                            let item = activeitem.insert(&dbcopy.db).await.unwrap();
+                            socket.emit("set-return", &item).ok();
+                        }
+                        
+                        
+                    };
                 },
             );
 
