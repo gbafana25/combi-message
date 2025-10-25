@@ -5,26 +5,12 @@ import Home from './Home';
 import Profile from './Profile';
 import { useEffect } from 'react';
 import { io } from 'socket.io-client';
+import { MessageBrowserClient } from './MessageBrowserClient';
 
-const socket = io("http://localhost:5150")
+
 
 export const LocoSplash = () => {
-  useEffect(() => {
-    
-    socket.on("connected", (d) => {
-      console.log("Connected to socketio server "+d);
-    });
-
-    socket.on("set-return", (data) => {
-      console.log("return received "+data.key+" "+data.value);
-    })
-
-
-  }, [])
-
-  const sendGet = () => {
-    socket.emit("set", { key: "testkey", value: "testvalue"})
-  }
+  
 
   return (
     <div>
@@ -65,6 +51,9 @@ export const LocoSplash = () => {
             <li>
               <a href="/signup">Signup</a>
             </li>
+            <li>
+              <a href="/message-browser">Message Browser</a>
+            </li>
           </ul>
         </div>
       </header>
@@ -76,11 +65,11 @@ export const LocoSplash = () => {
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/" element={<Home/>}/>
             <Route path="/profile" element={<Profile/>}/>
+            <Route path="/message-browser" element={<MessageBrowserClient/>}/>
           </Routes>
         </BrowserRouter>
           
-      </div>
-      <button onClick={sendGet}>Test websocket</button> 
+      </div> 
     </div>
   );
 };

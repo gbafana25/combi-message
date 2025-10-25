@@ -59,7 +59,7 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
 
 ## TODO
 - implement api over websockets and udp
-  - websockets: basic functionality working, implement set/get requests
+  - websockets: implement set request, check if cloning db reference causes memory leaks
   - udp: strings separated by delimiter
-- axum sessions
+- axum sessions, only allow logged in users on some pages
 - in `set_private` (messages controller), move some repeated logic to Model or other functions
