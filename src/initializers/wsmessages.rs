@@ -6,7 +6,6 @@ use loco_rs::Result;
 use sea_orm::ActiveValue::Set;
 use sea_orm::{ActiveModelTrait, ColumnTrait, EntityTrait, QueryFilter};
 use serde::{Deserialize, Serialize};
-use serde_json::Value;
 use socketioxide::extract::{Data, SocketRef};
 use socketioxide::SocketIo;
 use axum::{Router as AxumRouter};
@@ -14,16 +13,10 @@ use tower::ServiceBuilder;
 use tower_http::cors::CorsLayer;
 use uuid::Uuid;
 
-use crate::models::_entities::messages;
+use crate::models::_entities::{apikeys, messages};
 use crate::models::messages::ActiveModel;
 
 pub struct WsMessageInitializer;
-
-#[derive(Serialize, Deserialize)]
-struct Message {
-    devicename: String,
-    value: String,
-}
 
 #[derive(Serialize, Deserialize)]
 struct SetMessage {
@@ -43,12 +36,12 @@ impl SetMessage {
 
 #[derive(Serialize, Deserialize)]
 struct GetReq {
-    devicename: String
+    devicename: String,
 }
 
-fn on_connect(socket: SocketRef, Data(data): Data<Value>, ctx: &AppContext) {
-    socket.emit("connected", &data).ok();
-
+#[derive(Serialize, Deserialize)]
+struct Error {
+    error: String
 }
 
 #[async_trait]
@@ -68,7 +61,7 @@ impl Initializer for WsMessageInitializer {
 
         io.ns("/", | socket: SocketRef | {
             
-            socket.emit("connected", &Message {devicename: "test".to_string(), value: "test".to_string()}).ok();
+            socket.emit("connected", &GetReq {devicename: "test".to_string()}).ok();
 
             socket.on(
                 "set",
@@ -102,7 +95,6 @@ impl Initializer for WsMessageInitializer {
                         .filter(messages::Column::DeviceName.eq(data.devicename.clone()))
                         .filter(messages::Column::Isprivate.eq(0))
                         .all(&dbcopy.db).await.unwrap();
-                    println!("Received get command: {:?}", res.get(0));
                     socket.emit("get-return", &res).ok();
                 }
             );

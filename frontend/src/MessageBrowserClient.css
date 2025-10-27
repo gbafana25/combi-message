@@ -1,33 +1,43 @@
 @import url('https://fonts.googleapis.com/css?family=Noto+Sans:400,400i,700,700i&subset=greek-ext');
 
+:root {
+  --background-gradient: linear-gradient(178deg, #ffff33 10%, #3333ff);
+  --gray: #34495e;
+  --darkgray: #2c3e50;
+}
+
 body{
     min-height: 100vh;
 	font-family: 'Noto Sans', sans-serif;
 }
+
+label {
+  padding: 10px;
+}
+
 .text-center{
 	color:#fff;	
 	text-transform:uppercase;
-    font-size: 23px;
-    margin: -50px 0 80px 0;
-    display: block;
-    text-align: center;
+  font-size: 23px;
+  margin: -50px 0 30px 0;
+  display: block;
+  text-align: center;
 }
 .box{
 	position:absolute;
 	left:50%;
-	top:50%;
+	top:30%;
 	transform: translate(-50%,-25%);
-    border-radius: 3px;
+  border-radius: 3px;
 	padding:70px 100px;
 }
 .input-container{
 	position:relative;
-	margin-bottom:25px;
+	margin-bottom:30px;
 }
+
+
 .input-container label{
-	position:absolute;
-	top:0px;
-	left:0px;
 	font-size:16px;
 	color:#fff;	
 	transition: all 0.5s ease-in-out;
@@ -40,6 +50,8 @@ body{
   padding:8px 0 5px 0;
   font-size:16px;
   color:#fff;
+  padding: 20px;
+  margin: 10px;
 }
 .input-container input:focus{ 
  border:none;	
@@ -64,4 +76,83 @@ body{
 	top:-12px;
 	font-size:12px;
 	
+}
+
+select {
+  /* Reset Select */
+  appearance: none;
+  outline: 10px red;
+  border: 0;
+  box-shadow: none;
+  /* Personalize */
+  flex: 1;
+  padding: 0 1em;
+  color: #fff;
+  background-color: var(--darkgray);
+  background-image: none;
+  cursor: pointer;
+}
+/* Remove IE arrow */
+select::-ms-expand {
+  display: none;
+}
+/* Custom Select wrapper */
+.select {
+  position: relative;
+  display: flex;
+  width: 20em;
+  height: 3em;
+  border-radius: .25em;
+  overflow: hidden;
+}
+/* Arrow */
+.select::after {
+  content: '\25BC';
+  position: absolute;
+  top: 0;
+  right: 0;
+  padding: 1em;
+  background-color: #34495e;
+  transition: .25s all ease;
+  pointer-events: none;
+}
+/* Transition */
+.select:hover::after {
+  color: #f39c12;
+}
+
+.pubprivtoggle {
+  --s: 40px; /* adjust this to control the size*/
+  
+  height: var(--s);
+  aspect-ratio: 2.5;
+  width: auto; /* some browsers need this */
+  border-radius: var(--s);
+  padding: calc(var(--s)/10);
+  margin: calc(var(--s)/2);
+  cursor: pointer;
+  background:
+    radial-gradient(farthest-side,#15202a 96%,#0000) 
+      var(--_p,0%)/var(--s) content-box no-repeat,
+    var(--_c,#ff7a7a);
+  box-sizing: content-box;
+  transform-origin: calc(3*var(--s)/5) 50%;
+  transition: transform cubic-bezier(0,300,1,300) .5s,background .3s .1s ease-in;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+}
+.pubprivtoggle:checked {
+  --_c: #85ff7a;
+  --_p: 100%;
+  transform-origin: calc(100% - 3*var(--s)/5) 50%;
+  transform: rotate(0.1deg);
+}
+
+.outputbox {
+  background-color: black;
+  color: rgb(0, 196, 0);
+  width: 25%;
+  margin-left: 20px;
+  padding: 10px 20px;
 }

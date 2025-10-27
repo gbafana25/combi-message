@@ -44,11 +44,13 @@ export const MessageBrowserClient = () => {
         <body>
             <div className="box">
                 <span className="text-center">Add/Retrieve messages</span>
-                <div className="input-container">
-                    <select name="operation_type" defaultValue={"get"} onChange={e => setSelectedOperation(e.target.value)}>
-                        <option value={"set"}>Set</option>
-                        <option value={"get"}>Get</option>
-                    </select>
+                <div className="container">
+                    <div className="select">
+                        <select className="custom-select-sources" name="operation_type" defaultValue={"get"} onChange={e => setSelectedOperation(e.target.value)}>
+                            <option value={"set"}>Set</option>
+                            <option value={"get"}>Get</option>
+                        </select>
+                    </div>
                 </div>
                 <div className="input-container">
                     <label htmlFor="devicename">Device Name</label>
@@ -86,11 +88,14 @@ export const MessageBrowserClient = () => {
                 
                 <button className="btn" onClick={sendRequest}>Send</button>
             </div>
-                <ul>
-                    {responseText.map((e:any) => (
-                        <li key={e.key}>{e.key} - {e.value}</li>
-                    ))}
-                </ul>
+                <div className="outputbox">
+                    <ul>
+                        {responseText.map((e:any) => (
+                            <li key={e.key}>{e.key}: {e.value}</li>
+                        ))}
+                    </ul>
+                </div>
+                
             <div>
 
             </div>
