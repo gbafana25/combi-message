@@ -3,17 +3,23 @@ import Cookies from 'js-cookie';
 import "./index.css"
 import "./Profile.css"
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 function Profile() {
     const [email, setEmail] = useState('');
     const [name, setName] = useState('')
     var r = {name: "", email: "", pid: "", apikey: ""};
     const [resp, setResp] = useState({name: "", email: "", apikey: ""});
+    const [isloggedin, setLoggedIn] = useState(false);
+    const navigate = useNavigate();
 
     useEffect(() => {
-       curr_user() 
+        curr_user()
+        if(Cookies.get("token") != null) {
+            setLoggedIn(true)
+        }
         
-    }, []);
+    }, []);    
 
     const curr_user = async () => {
             const response = await axios.get("http://localhost:5150/api/auth/current", {

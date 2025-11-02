@@ -11,8 +11,8 @@ function Login() {
 
   useEffect(() => {
     // validate token
-    if(Cookies.get("token")) {
-      navigate('/profile')
+    if(Cookies.get("token") != null) {
+      navigate('/profile', {replace: true})
     }
   })
 

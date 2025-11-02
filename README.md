@@ -62,9 +62,10 @@ Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the com
   - login/signup only work when message browser page is completely disabled
   - try disabling cors layer for `wsmessages`
 - for private messages, have an `owner` column that ties back to the user
-- on message browser, get API automatically if a private toggle is selected
+- on message browser, get API automatically sets to private if a private toggle is selected
 - implement api over websockets and udp
   - websockets: check if cloning db reference causes memory leaks
     - frontend: switch to show/hide private messages
   - udp?: strings separated by delimiter
+- user object: add array of private messages
 - in `set_private` (messages controller), move some repeated logic to Model or other functions

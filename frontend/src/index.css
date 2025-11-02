@@ -48,6 +48,18 @@ a {
     margin-right: 10px;
 }
 
+.right-nav {
+  display: inline-flex;
+  position: relative;
+}
+
+.logout-btn {
+  padding: 10px;
+  padding-right: 50px;
+  background-color: red;
+  color: white;
+}
+
 .fixed-top {
   position: fixed;
   top: 0;

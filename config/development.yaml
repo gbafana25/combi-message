@@ -36,7 +36,7 @@ server:
       fallback: "frontend/dist/index.html"
     cors:
       enable: true
-      allow_origins: ["http://localhost:3000"]
+      allow_origins: ["*"]
 
 # Worker Configuration
 workers:

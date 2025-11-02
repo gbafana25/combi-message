@@ -44,7 +44,7 @@ impl Hooks for App {
 
     async fn initializers(_ctx: &AppContext) -> Result<Vec<Box<dyn Initializer>>> {
         Ok(vec![
-            Box::new(initializers::wsmessages::WsMessageInitializer)
+            //Box::new(initializers::wsmessages::WsMessageInitializer)
         ])
     }
 

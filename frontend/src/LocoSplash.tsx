@@ -3,13 +3,17 @@ import { BrowserRouter, Routes, Route, Link, Form, Router } from 'react-router-d
 import Signup from './Signup';
 import Home from './Home';
 import Profile from './Profile';
-import { useEffect } from 'react';
-import { io } from 'socket.io-client';
-import { MessageBrowserClient } from './MessageBrowserClient';
+import Cookies from 'js-cookie';
+import { useEffect, useState } from 'react';
+//import { MessageBrowserClient } from './MessageBrowserClient';
 
 
 
 export const LocoSplash = () => {
+
+  const logout = () => {
+    Cookies.remove("token");
+  }
   
 
   return (
@@ -45,16 +49,18 @@ export const LocoSplash = () => {
             <li>
               <a href="/">Home</a>
             </li>
+            <li>
+              <a href='/profile' hidden={Cookies.get("token") == null}>Profile</a>
+            </li>
             <li className="">
-              <a href="/login">Login</a>
+              <a href="/login" hidden={Cookies.get("token") != null}>Login</a>
+              <button type='button' className='logout-btn' hidden={Cookies.get("token") == null} onClick={logout}>Logout</button>
             </li>
             <li>
-              <a href="/signup">Signup</a>
-            </li>
-            <li>
-              <a href="/message-browser">Message Browser</a>
+              <a href="/signup" hidden={Cookies.get("token") != null}>Signup</a>
             </li>
           </ul>
+    
         </div>
       </header>
       <div>
@@ -65,7 +71,6 @@ export const LocoSplash = () => {
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/" element={<Home/>}/>
             <Route path="/profile" element={<Profile/>}/>
-            <Route path="/message-browser" element={<MessageBrowserClient/>}/>
           </Routes>
         </BrowserRouter>
           
