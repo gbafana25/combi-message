@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useContext, useEffect, useState } from 'react';
 import "./Login.css";
 import axios from 'axios';
 import Cookies from 'js-cookie';
@@ -12,7 +12,7 @@ function Login() {
   useEffect(() => {
     // validate token
     if(Cookies.get("token") != null) {
-      navigate('/profile', {replace: true})
+      navigate('/profile')
     }
   })
 
@@ -27,6 +27,7 @@ function Login() {
       password: password
     }).then(resp => {
       Cookies.set('token', resp.data.token)
+      Cookies.set('apikey', resp.data.apikey)
       navigate("/profile")
     })
     // Clear form fields after submission

@@ -10,7 +10,7 @@ use socketioxide::extract::{Data, SocketRef};
 use socketioxide::SocketIo;
 use axum::{Router as AxumRouter};
 use tower::ServiceBuilder;
-use tower_http::cors::CorsLayer;
+use tower_http::cors::{Any, CorsLayer};
 use uuid::Uuid;
 
 use crate::models::_entities::{apikeys, messages};
@@ -57,7 +57,7 @@ impl Initializer for WsMessageInitializer {
         let c2 = ctx.clone();
         //let dbconn = ctcopy.db.to_owned();
 
-        let corslayer = CorsLayer::new().allow_origin("http://localhost:3000".parse::<HeaderValue>().unwrap());
+        let corslayer = CorsLayer::new().allow_origin("*".parse::<HeaderValue>().unwrap()).allow_headers(Any);
 
         io.ns("/", | socket: SocketRef | {
             

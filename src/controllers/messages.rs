@@ -35,10 +35,10 @@ pub async fn index(State(_ctx): State<AppContext>) -> Result<Response> {
     format::empty()
 }
 
-pub async fn load_item(ctx: &AppContext, device_name: String) -> Result<Model> { 
+pub async fn load_item(ctx: &AppContext, device_name: String, isprivate: i32) -> Result<Model> { 
     let item = messages::Entity::find()
         .filter(messages::Column::DeviceName.eq(device_name))
-        .filter(messages::Column::Isprivate.eq(0))
+        .filter(messages::Column::Isprivate.eq(isprivate))
         .order_by(messages::Column::CreatedAt, sea_orm::Order::Desc)
         .one(&ctx.db).await?;
     item.ok_or_else(|| Error::NotFound)
@@ -59,9 +59,10 @@ pub async fn list_public(device_name: String, ctx: &AppContext) -> Result<Respon
     format::json(res)
 }
 
-pub async fn list_all(device_name: String, ctx: &AppContext) -> Result<Response> {
+pub async fn list_all(device_name: String, user_id: i32, ctx: &AppContext) -> Result<Response> {
     let res = messages::Entity::find()
         .filter(messages::Column::DeviceName.eq(device_name))
+        .filter(messages::Column::UserId.eq(user_id).or(messages::Column::UserId.eq(0)))
         .all(&ctx.db).await?;
     format::json(res)
 }
@@ -70,17 +71,20 @@ pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>,
     let paramsclone = params.clone();
     let keysearchval: String = paramsclone.key;
     let mut isprivate = 0;
+    let mut userid = 0;
     // verify key and set isprivate variable
     match params.api_key {
         Some(ref akey) => {
-            let Ok(_) = apikeys::Model::verify_key(&ctx.db, akey).await else {
+            let Ok(a) = apikeys::Model::verify_key(&ctx.db, akey).await else {
                 return bad_request("Invalid API key");
             };
             isprivate = 1;
+            userid = a.user_id;
         },
         None => {
             // public
             isprivate = 0;
+            userid = 0;
         }
     }
 
@@ -89,6 +93,7 @@ pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>,
         let mut activeitem: ActiveModel = Default::default();
         params.update(&mut activeitem, device_name);   
         activeitem.isprivate = Set(Some(isprivate));
+        activeitem.user_id = Set(userid);
         let item = activeitem.insert(&ctx.db).await?;
         return format::json(item);
 
@@ -102,8 +107,20 @@ pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>,
 
 }
 
-pub async fn get_one(Path(device_name): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
-    format::json(load_item(&ctx, device_name).await?)
+pub async fn get_one(Path(device_name): Path<String>, Query(api_key): Query<GetPrivateParams>, State(ctx): State<AppContext>) -> Result<Response> {
+    match api_key.api_key {
+        Some(akey) => {
+            let Ok(_) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
+                return bad_request("Invalid api key");
+            };
+            return format::json(load_item(&ctx, device_name, 1).await?);
+            
+        },
+        None => {
+            return format::json(load_item(&ctx, device_name, 0).await?);
+        }
+    }
+    
 }
 
 
@@ -115,10 +132,10 @@ pub async fn get_all_with_private(Path(device_name): Path<String>, Query(api_key
 
     match api_key.api_key {
         Some(akey) => {
-            let Ok(_) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
+            let Ok(a) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
                 return bad_request("Invalid api key");
             };
-            return list_all(device_name, &ctx).await;
+            return list_all(device_name, a.user_id, &ctx).await;
         },
         None => {
             return list_public(device_name, &ctx).await;

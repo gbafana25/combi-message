@@ -55,9 +55,11 @@ a {
 
 .logout-btn {
   padding: 10px;
-  padding-right: 50px;
+  padding-right: 60px;
   background-color: red;
   color: white;
+  font-weight: bold;
+  text-align: center;
 }
 
 .fixed-top {

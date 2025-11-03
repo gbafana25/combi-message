@@ -17,6 +17,7 @@ pub struct Model {
     pub value: Option<String>,
     pub device_name: Option<String>,
     pub isprivate: Option<i32>,
+    pub user_id: i32,
 }
 
 #[derive(Copy, Clone, Debug, EnumIter, DeriveRelation)]

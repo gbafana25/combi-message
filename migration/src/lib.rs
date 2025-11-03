@@ -7,6 +7,7 @@ mod m20251012_054437_messages;
 mod m20251012_182002_add_device_name_tomessages;
 mod m20251020_051311_apikeys;
 mod m20251021_020604_addisprivate_tomessages;
+mod m20251102_191035_add_user_ref_to_messages;
 pub struct Migrator;
 
 #[async_trait::async_trait]
@@ -18,6 +19,7 @@ impl MigratorTrait for Migrator {
             Box::new(m20251012_182002_add_device_name_tomessages::Migration),
             Box::new(m20251020_051311_apikeys::Migration),
             Box::new(m20251021_020604_addisprivate_tomessages::Migration),
+            Box::new(m20251102_191035_add_user_ref_to_messages::Migration),
             // inject-above (do not remove this comment)
         ]
     }

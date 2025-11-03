@@ -1,21 +1,14 @@
 import Login from './Login';
-import { BrowserRouter, Routes, Route, Link, Form, Router } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Link, Form, Router, useNavigate } from 'react-router-dom';
 import Signup from './Signup';
 import Home from './Home';
 import Profile from './Profile';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
-//import { MessageBrowserClient } from './MessageBrowserClient';
-
+import { MessageBrowserClient } from './MessageBrowserClient';
 
 
 export const LocoSplash = () => {
-
-  const logout = () => {
-    Cookies.remove("token");
-  }
-  
-
   return (
     <div>
       <header className="navbar fixed-top">
@@ -50,14 +43,7 @@ export const LocoSplash = () => {
               <a href="/">Home</a>
             </li>
             <li>
-              <a href='/profile' hidden={Cookies.get("token") == null}>Profile</a>
-            </li>
-            <li className="">
-              <a href="/login" hidden={Cookies.get("token") != null}>Login</a>
-              <button type='button' className='logout-btn' hidden={Cookies.get("token") == null} onClick={logout}>Logout</button>
-            </li>
-            <li>
-              <a href="/signup" hidden={Cookies.get("token") != null}>Signup</a>
+              <a href="/message-browser">Message Browser</a>
             </li>
           </ul>
     
@@ -71,6 +57,7 @@ export const LocoSplash = () => {
             <Route path="/signup" element={<Signup/>}/>
             <Route path="/" element={<Home/>}/>
             <Route path="/profile" element={<Profile/>}/>
+            <Route path="/message-browser" element={<MessageBrowserClient/>}/>
           </Routes>
         </BrowserRouter>
           

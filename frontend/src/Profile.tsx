@@ -19,15 +19,23 @@ function Profile() {
             setLoggedIn(true)
         }
         
-    }, []);    
+    }, []);  
+    
+    const logout = () => {
+        Cookies.remove("token");
+        Cookies.remove("apikey");
+        navigate("/")
+    }
 
     const curr_user = async () => {
             const response = await axios.get("http://localhost:5150/api/auth/current", {
                 headers: {
                 Authorization: "Bearer "+Cookies.get("token")
                 }
+            }).then(resp => {
+                setResp(resp.data);
+                Cookies.set("apikey", resp.data.apikey)
             })
-            setResp(await response.data)
 
         }
     
@@ -46,6 +54,7 @@ function Profile() {
                 <h1>API Key</h1>
                 <p>{resp.apikey}</p>    
             </div>
+           <button className='logoutbtn' onClick={logout}>Logout</button> 
         </div>    
     )
 }

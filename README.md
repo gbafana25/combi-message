@@ -58,14 +58,11 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- figure out how to disable cors on socket.io, cors layer for websockets interferes with rest of app endpoints
-  - login/signup only work when message browser page is completely disabled
-  - try disabling cors layer for `wsmessages`
-- for private messages, have an `owner` column that ties back to the user
+- keep testing REST API and websockets together (issue fixed so far)
+- hide some message object info when returned (user id, msg id, etc.)
 - on message browser, get API automatically sets to private if a private toggle is selected
 - implement api over websockets and udp
   - websockets: check if cloning db reference causes memory leaks
     - frontend: switch to show/hide private messages
-  - udp?: strings separated by delimiter
-- user object: add array of private messages
-- in `set_private` (messages controller), move some repeated logic to Model or other functions
+  - udp?: strings separated by delimiter (may be harder to implement with initializers)
+- webhooks
