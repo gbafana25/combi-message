@@ -1,11 +1,12 @@
 import Cookies from 'js-cookie';
-import { BrowserRouter, Route, Routes, useNavigate } from 'react-router-dom';
-import Login from './Login';
 import "./Home.css";
 
 const LoginButton = () => {
+    if(Cookies.get("token") == null) {
+        return <a className='button-3' role='button-3' href='/login'>Login</a>
+    }
     return (
-        <a className='button-3' role='button-3' href='/login'>Login</a>
+        <a className='button-3' role='button-3' href='/profile'>Profile</a>
     )
 }
 

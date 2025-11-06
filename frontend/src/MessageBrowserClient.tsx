@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
+import Cookies from 'js-cookie';
 import "./MessageBrowserClient.css";
 
 const socket = io("http://localhost:5150")
@@ -10,6 +11,11 @@ export const MessageBrowserClient = () => {
     const [value, setValue] = useState('');
     const [selectedOperation, setSelectedOperation] = useState('');
     const [responseText, setResponse] = useState([]);
+    const [privateCheck, setCheck] = useState(false);
+
+    const handleCheckbox = () => {
+        setCheck(!privateCheck);
+    }
 
     useEffect(() => {
         setSelectedOperation('get');
@@ -32,9 +38,17 @@ export const MessageBrowserClient = () => {
 
   const sendRequest = () => {
     if(selectedOperation == "get") {
-        socket.emit(selectedOperation, { devicename: devicename})
+        if(privateCheck) {
+            //console.log(Cookies.get("apikey"))
+            socket.emit(selectedOperation, { devicename: devicename, apikey: Cookies.get("apikey")})
+        } else {
+            socket.emit(selectedOperation, { devicename: devicename, apikey: ""})
+        }
     } else {
-        socket.emit(selectedOperation, { devicename: devicename, key: key, value: value})
+        if(privateCheck) {
+            socket.emit(selectedOperation, { devicename: devicename, key: key, value: value, apikey: Cookies.get("apikey")})
+        }
+        socket.emit(selectedOperation, { devicename: devicename, key: key, value: value, apikey: ""})
     }
     
   }
@@ -51,6 +65,11 @@ export const MessageBrowserClient = () => {
                             <option value={"get"}>Get</option>
                         </select>
                     </div>
+                    <div>
+                        <label htmlFor="private-check">Private</label>
+                        <input id="private-check" type="checkbox" checked={privateCheck} onChange={handleCheckbox}/>
+                    </div>
+                    
                 </div>
                 <div className="input-container">
                     <label htmlFor="devicename">Device Name</label>

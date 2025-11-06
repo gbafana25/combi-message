@@ -22,7 +22,8 @@ pub struct WsMessageInitializer;
 struct SetMessage {
     devicename: String,
     key: String,
-    value: String
+    value: String,
+    apikey: String
 }
 
 impl SetMessage {
@@ -37,6 +38,7 @@ impl SetMessage {
 #[derive(Serialize, Deserialize)]
 struct GetReq {
     devicename: String,
+    apikey: String
 }
 
 #[derive(Serialize, Deserialize)]
@@ -61,7 +63,7 @@ impl Initializer for WsMessageInitializer {
 
         io.ns("/", | socket: SocketRef | {
             
-            socket.emit("connected", &GetReq {devicename: "test".to_string()}).ok();
+            socket.emit("connected", &GetReq {devicename: "test".to_string(), apikey: "".to_string()}).ok();
 
             socket.on(
                 "set",
@@ -69,15 +71,36 @@ impl Initializer for WsMessageInitializer {
                     let dbcopy = c2;
                     match messages::Model::find_by_key(&dbcopy.db, &data.key, &data.devicename).await {
                         Ok(msg) => {
-                            let mut modified_item: ActiveModel = msg.into();
-                            modified_item.value = Set(Some(data.value));
-                            let ret_item = modified_item.update(&dbcopy.db).await.unwrap();
-                            socket.emit("set-return", &ret_item).ok();
+                            if msg.isprivate.unwrap() == 1 {
+                                match apikeys::Model::verify_key(&dbcopy.db, &data.apikey).await {
+                                    Ok(_) => {
+                                        let mut modified_item: ActiveModel = msg.into();
+                                        modified_item.value = Set(Some(data.value));
+                                        let ret_item = modified_item.update(&dbcopy.db).await.unwrap();
+                                        socket.emit("set-return", &ret_item).ok();
+                                    },
+                                    Err(_) => {
+                                        socket.emit("set-return", "invalid api key").ok();
+                                    }
+                                    
+                                };
+                            } else {
+                                let mut modified_item: ActiveModel = msg.into();
+                                modified_item.value = Set(Some(data.value));
+                                let ret_item = modified_item.update(&dbcopy.db).await.unwrap();
+                                socket.emit("set-return", &ret_item).ok();
+                            }
+                            
                         },
                         Err(_) => {
                             let mut activeitem: ActiveModel = Default::default();
                             data.update(&mut activeitem, data.devicename.clone());
-                            activeitem.isprivate = Set(Some(0));
+                            if data.apikey.is_empty() {
+                                activeitem.isprivate = Set(Some(0));
+                            } else {
+                                activeitem.isprivate = Set(Some(1));
+                            }
+                            
                             let item = activeitem.insert(&dbcopy.db).await.unwrap();
                             socket.emit("set-return", &item).ok();
                         }
@@ -91,11 +114,26 @@ impl Initializer for WsMessageInitializer {
                 "get",
                 async |socket: SocketRef, Data::<GetReq>(data)| {
                     let dbcopy = ctcopy;
-                    let res = messages::Entity::find()
-                        .filter(messages::Column::DeviceName.eq(data.devicename.clone()))
-                        .filter(messages::Column::Isprivate.eq(0))
-                        .all(&dbcopy.db).await.unwrap();
-                    socket.emit("get-return", &res).ok();
+                    if !data.apikey.is_empty() {
+                        match apikeys::Model::verify_key(&dbcopy.db, &data.apikey).await {
+                            Ok(_) => {
+                                let res = messages::Entity::find()
+                                    .filter(messages::Column::DeviceName.eq(data.devicename.clone()))
+                                    .all(&dbcopy.db).await.unwrap();
+                                socket.emit("get-return", &res).ok();
+                            },
+                            Err(_) => {
+                                socket.emit("get-return", "bad api key").ok();
+                            }
+                        }
+                    } else {
+                        let res = messages::Entity::find()
+                            .filter(messages::Column::DeviceName.eq(data.devicename.clone()))
+                            .filter(messages::Column::Isprivate.eq(0))
+                            .all(&dbcopy.db).await.unwrap();
+                        socket.emit("get-return", &res).ok();
+                    }
+                    
                 }
             );
         });

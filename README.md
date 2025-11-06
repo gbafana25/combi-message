@@ -58,11 +58,8 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- keep testing REST API and websockets together (issue fixed so far)
 - hide some message object info when returned (user id, msg id, etc.)
-- on message browser, get API automatically sets to private if a private toggle is selected
 - implement api over websockets and udp
-  - websockets: check if cloning db reference causes memory leaks
-    - frontend: switch to show/hide private messages
+  - websockets: check if cloning db reference causes memory leaks, separate error message for `socket.on` (failed to validate api key)
   - udp?: strings separated by delimiter (may be harder to implement with initializers)
 - webhooks
