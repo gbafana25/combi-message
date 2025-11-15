@@ -1,4 +1,6 @@
-# Welcome to Loco :train:
+# combi-message 
+
+A key value data store accessible over HTTP and Socket.IO.
 
 [Loco](https://loco.rs) is a web and API framework running on Rust.
 
