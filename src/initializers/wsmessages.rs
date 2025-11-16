@@ -116,14 +116,11 @@ impl Initializer for WsMessageInitializer {
                     let dbcopy = ctcopy;
                     if !data.apikey.is_empty() {
                         match apikeys::Model::verify_key(&dbcopy.db, &data.apikey).await {
-                            Ok(_) => {
-                                let res = messages::Entity::find()
-                                    .filter(messages::Column::DeviceName.eq(data.devicename.clone()))
-                                    .all(&dbcopy.db).await.unwrap();
-                                socket.emit("get-return", &res).ok();
+                            Ok(akey) => {
+                                socket.emit("get-return", &messages::Entity::get_all_ws(data.devicename.clone(), &dbcopy.db, akey.user_id).await).ok();
                             },
                             Err(_) => {
-                                socket.emit("get-return", "bad api key").ok();
+                                socket.emit("error", "bad api key").ok();
                             }
                         }
                     } else {

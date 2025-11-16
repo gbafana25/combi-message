@@ -60,9 +60,9 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- finish moving over write logic for messages to ActiveModel (in `models/`)
-- use new get logic in wsmessages
-- implement api over websockets and udp
+- keep replacing new get logic in wsmessages
+- implement api over websockets
+- api user documentation on frontend
   - websockets: check if cloning db reference causes memory leaks, separate error message for `socket.on` (failed to validate api key)
 - webhooks
 - find out how the JWT tokens work (expiration)

@@ -1,8 +1,7 @@
-use loco_rs::model::{self, ModelError, ModelResult};
+use loco_rs::{config::Database, model::{self, ModelError, ModelResult}};
 use sea_orm::{FromQueryResult, QueryOrder, QuerySelect, entity::prelude::*};
 use serde::Serialize;
-use tracing_subscriber::registry::Data;
-use crate::models::_entities::messages;
+use crate::{controllers::messages::SetPrivateParams, models::_entities::messages};
 use loco_rs::prelude::*;
 
 pub use super::_entities::messages::{ActiveModel, Model, Entity};
@@ -50,7 +49,23 @@ impl Model {
 }
 
 // implement your write-oriented logic here
-impl ActiveModel {}
+impl ActiveModel {
+    pub async fn create_item(db: &DatabaseConnection, device_name: String, params: SetPrivateParams, isprivate: i32, userid: i32) -> Result<Response> {
+        let mut activeitem: ActiveModel = Default::default();
+        params.update(&mut activeitem, device_name);   
+        activeitem.isprivate = Set(Some(isprivate));
+        activeitem.user_id = Set(userid);
+        let item = activeitem.insert(db).await?;
+        return format::json(item);
+    }
+
+    pub async fn update_item(db: &DatabaseConnection, params: SetPrivateParams, message: Model) -> Result<Response> {
+        let mut modified_item: ActiveModel = message.into();
+        modified_item.value = Set(Some(params.value.to_owned()));
+        let ret_item = modified_item.update(db).await?;
+        return format::json(ret_item);
+    }
+}
 
 // implement your custom finders, selectors oriented logic here
 impl Entity {
@@ -86,5 +101,11 @@ impl Entity {
             .into_model::<ReturnMessageFormat>()
             .all(db).await?;
         format::json(res)
+    }
+
+    pub async fn get_all_ws(device_name: String, db: &DatabaseConnection, user_id: i32) -> Vec<Model> {
+        return messages::Entity::find()
+            .filter(messages::Column::DeviceName.eq(device_name))
+            .all(db).await.unwrap();
     }
 }

@@ -30,7 +30,7 @@ pub struct SetPrivateParams {
 }
 
 impl SetPrivateParams {
-    fn update(&self, item: &mut ActiveModel, device: String) {
+    pub fn update(&self, item: &mut ActiveModel, device: String) {
         item.key = Set(Some(self.key.clone()));
         item.value = Set(Some(self.value.clone()));
         item.device_name = Set(Some(device));
@@ -66,20 +66,10 @@ pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>,
 
     // message already exists
     let Ok(message) = messages::Model::find_by_key(&ctx.db, &keysearchval, &device_name).await else {
-        let mut activeitem: ActiveModel = Default::default();
-        params.update(&mut activeitem, device_name);   
-        activeitem.isprivate = Set(Some(isprivate));
-        activeitem.user_id = Set(userid);
-        let item = activeitem.insert(&ctx.db).await?;
-        return format::json(item);
-
-        
+        return messages::ActiveModel::create_item(&ctx.db, device_name, params, isprivate, userid).await;
     };
 
-    let mut modified_item: ActiveModel = message.into();
-    modified_item.value = Set(Some(params.value.to_owned()));
-    let ret_item = modified_item.update(&ctx.db).await?;
-    return format::json(ret_item);
+    return messages::ActiveModel::update_item(&ctx.db, params, message).await;
 
 }
 
