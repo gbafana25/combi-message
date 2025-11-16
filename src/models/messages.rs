@@ -1,9 +1,21 @@
 use loco_rs::model::{self, ModelError, ModelResult};
-use sea_orm::entity::prelude::*;
+use sea_orm::{FromQueryResult, QueryOrder, QuerySelect, entity::prelude::*};
+use serde::Serialize;
+use tracing_subscriber::registry::Data;
 use crate::models::_entities::messages;
+use loco_rs::prelude::*;
 
 pub use super::_entities::messages::{ActiveModel, Model, Entity};
 pub type Messages = Entity;
+
+#[derive(Debug, FromQueryResult, Serialize)]
+pub struct ReturnMessageFormat {
+    pub value: String,
+    pub device_name: String,
+    pub key: String,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+}
 
 #[async_trait::async_trait]
 impl ActiveModelBehavior for ActiveModel {
@@ -41,4 +53,38 @@ impl Model {
 impl ActiveModel {}
 
 // implement your custom finders, selectors oriented logic here
-impl Entity {}
+impl Entity {
+    pub async fn load_item(db: &DatabaseConnection, device_name: String, isprivate: i32) -> Result<ReturnMessageFormat> { 
+        let item = messages::Entity::find()
+            .select_only()
+            .columns([messages::Column::CreatedAt, messages::Column::DeviceName, messages::Column::Key, messages::Column::Value, messages::Column::UpdatedAt])
+            .filter(messages::Column::DeviceName.eq(device_name))
+            .filter(messages::Column::Isprivate.eq(isprivate))
+            .order_by(messages::Column::UpdatedAt, sea_orm::Order::Desc)
+            .into_model::<ReturnMessageFormat>()
+            .one(db).await?;
+        item.ok_or_else(|| Error::NotFound)
+    }
+
+    pub async fn list_all(device_name: String, user_id: i32, db: &DatabaseConnection) -> Result<Response> {
+        let res = messages::Entity::find()
+            .select_only()
+            .columns([messages::Column::CreatedAt, messages::Column::DeviceName, messages::Column::Key, messages::Column::Value, messages::Column::UpdatedAt])
+            .filter(messages::Column::DeviceName.eq(device_name))
+            .filter(messages::Column::UserId.eq(user_id).or(messages::Column::UserId.eq(0)))
+            .into_model::<ReturnMessageFormat>()
+            .all(db).await?;
+        format::json(res)
+    }
+
+    pub async fn list_public(device_name: String, db: &DatabaseConnection) -> Result<Response> {
+        let res = messages::Entity::find()
+            .select_only()
+            .columns([messages::Column::CreatedAt, messages::Column::DeviceName, messages::Column::Key, messages::Column::Value, messages::Column::UpdatedAt])
+            .filter(messages::Column::DeviceName.eq(device_name))
+            .filter(messages::Column::Isprivate.eq(0))
+            .into_model::<ReturnMessageFormat>()
+            .all(db).await?;
+        format::json(res)
+    }
+}

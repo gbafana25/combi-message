@@ -3,11 +3,19 @@
 #![allow(clippy::unused_async)]
 use loco_rs::prelude::*;
 use axum::{debug_handler, extract::Query};
-use sea_orm::QueryOrder;
+use sea_orm::FromQueryResult;
 use serde::{Deserialize, Serialize};
 
-use crate::models::{_entities::{apikeys, messages}, messages::{ActiveModel, Model}};
+use crate::models::{_entities::{apikeys, messages}, messages::ActiveModel};
 
+#[derive(Debug, FromQueryResult, Serialize)]
+pub struct ReturnMessageFormat {
+    pub value: String,
+    pub device_name: String,
+    pub key: String,
+    pub created_at: DateTimeWithTimeZone,
+    pub updated_at: DateTimeWithTimeZone,
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct GetPrivateParams {
@@ -33,38 +41,6 @@ impl SetPrivateParams {
 #[debug_handler]
 pub async fn index(State(_ctx): State<AppContext>) -> Result<Response> {
     format::empty()
-}
-
-pub async fn load_item(ctx: &AppContext, device_name: String, isprivate: i32) -> Result<Model> { 
-    let item = messages::Entity::find()
-        .filter(messages::Column::DeviceName.eq(device_name))
-        .filter(messages::Column::Isprivate.eq(isprivate))
-        .order_by(messages::Column::CreatedAt, sea_orm::Order::Desc)
-        .one(&ctx.db).await?;
-    item.ok_or_else(|| Error::NotFound)
-}
-
-pub async fn load_from_key(ctx: &AppContext, key: String) -> Result<Model> {
-    let item = messages::Entity::find().filter(
-        messages::Column::Key.eq(key))
-        .one(&ctx.db).await?;
-    item.ok_or_else(|| Error::NotFound)
-}
-
-pub async fn list_public(device_name: String, ctx: &AppContext) -> Result<Response> {
-    let res = messages::Entity::find()
-        .filter(messages::Column::DeviceName.eq(device_name))
-        .filter(messages::Column::Isprivate.eq(0))
-        .all(&ctx.db).await?;
-    format::json(res)
-}
-
-pub async fn list_all(device_name: String, user_id: i32, ctx: &AppContext) -> Result<Response> {
-    let res = messages::Entity::find()
-        .filter(messages::Column::DeviceName.eq(device_name))
-        .filter(messages::Column::UserId.eq(user_id).or(messages::Column::UserId.eq(0)))
-        .all(&ctx.db).await?;
-    format::json(res)
 }
 
 pub async fn set(State(ctx): State<AppContext>, Path(device_name): Path<String>, Query(params): Query<SetPrivateParams>) -> Result<Response> {
@@ -113,19 +89,14 @@ pub async fn get_one(Path(device_name): Path<String>, Query(api_key): Query<GetP
             let Ok(_) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
                 return bad_request("Invalid api key");
             };
-            return format::json(load_item(&ctx, device_name, 1).await?);
+            return format::json(messages::Entity::load_item(&ctx.db, device_name, 1).await?);
             
         },
         None => {
-            return format::json(load_item(&ctx, device_name, 0).await?);
+            return format::json(messages::Entity::load_item(&ctx.db, device_name, 0).await?);
         }
     }
     
-}
-
-
-pub async fn get_all(Path(device_name): Path<String>, State(ctx): State<AppContext>) -> Result<Response> {
-    list_public(device_name, &ctx).await
 }
 
 pub async fn get_all_with_private(Path(device_name): Path<String>, Query(api_key): Query<GetPrivateParams>, State(ctx): State<AppContext>) -> Result<Response> {
@@ -135,10 +106,10 @@ pub async fn get_all_with_private(Path(device_name): Path<String>, Query(api_key
             let Ok(a) = apikeys::Model::verify_key(&ctx.db, &akey).await else {
                 return bad_request("Invalid api key");
             };
-            return list_all(device_name, a.user_id, &ctx).await;
+            return messages::Entity::list_all(device_name, a.user_id, &ctx.db).await;
         },
         None => {
-            return list_public(device_name, &ctx).await;
+            return messages::Entity::list_public(device_name, &ctx.db).await;
         }
     }
   

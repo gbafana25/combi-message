@@ -60,8 +60,9 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- hide some message object info when returned (user id, msg id, etc.)
+- finish moving over write logic for messages to ActiveModel (in `models/`)
+- use new get logic in wsmessages
 - implement api over websockets and udp
   - websockets: check if cloning db reference causes memory leaks, separate error message for `socket.on` (failed to validate api key)
-  - udp?: strings separated by delimiter (may be harder to implement with initializers)
 - webhooks
+- find out how the JWT tokens work (expiration)
