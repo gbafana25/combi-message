@@ -6,6 +6,7 @@ import Profile from './Profile';
 import Cookies from 'js-cookie';
 import { useEffect, useState } from 'react';
 import { MessageBrowserClient } from './MessageBrowserClient';
+import { Docs } from './Docs';
 
 
 export const LocoSplash = () => {
@@ -45,6 +46,9 @@ export const LocoSplash = () => {
             <li>
               <a href="/message-browser">Message Browser</a>
             </li>
+            <li>
+              <a href="/docs">Docs</a>
+            </li>
           </ul>
     
         </div>
@@ -58,6 +62,7 @@ export const LocoSplash = () => {
             <Route path="/" element={<Home/>}/>
             <Route path="/profile" element={<Profile/>}/>
             <Route path="/message-browser" element={<MessageBrowserClient/>}/>
+            <Route path="/docs" element={<Docs/>}/>
           </Routes>
         </BrowserRouter>
           
