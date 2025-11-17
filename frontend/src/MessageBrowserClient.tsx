@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { io } from "socket.io-client";
 import Cookies from 'js-cookie';
 import "./MessageBrowserClient.css";
+import { Snackbar } from "@material-ui/core";
 
 const socket = io("http://localhost:5150")
 
@@ -12,6 +13,7 @@ export const MessageBrowserClient = () => {
     const [selectedOperation, setSelectedOperation] = useState('');
     const [responseText, setResponse] = useState([]);
     const [privateCheck, setCheck] = useState(false);
+    const [snackbarOpen, setOpen] = useState(false);
 
     const handleCheckbox = () => {
         setCheck(!privateCheck);
@@ -33,8 +35,18 @@ export const MessageBrowserClient = () => {
         setResponse(data);
     })
 
+    socket.on("error", (error) => {
+        console.log("Error: "+error);
+        // open snackbar
+        setOpen(true);
+    })
+
 
   }, [])
+
+  const handleClose = () => {
+    setOpen(false);
+  }
 
   const sendRequest = () => {
     if(selectedOperation == "get") {
@@ -118,6 +130,12 @@ export const MessageBrowserClient = () => {
             <div>
 
             </div>
+            <Snackbar
+                open={snackbarOpen}
+                autoHideDuration={5000}
+                onClose={handleClose}
+                message="Error processing request"
+            />
         </body>
         
   )

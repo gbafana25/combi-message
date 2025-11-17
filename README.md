@@ -60,8 +60,6 @@ You can check your [configuration](config/development.yaml) to pick either front
 Check out [a quick tour](https://loco.rs/docs/getting-started/tour/) or [the complete guide](https://loco.rs/docs/getting-started/guide/).
 
 ## TODO
-- keep replacing new get logic in wsmessages
-- implement api over websockets
 - api user documentation on frontend
   - websockets: check if cloning db reference causes memory leaks, separate error message for `socket.on` (failed to validate api key)
 - webhooks

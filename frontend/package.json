@@ -10,6 +10,7 @@
     "preview": "rsbuild preview"
   },
   "dependencies": {
+    "@material-ui/core": "^4.12.4",
     "@stomp/stompjs": "^7.2.1",
     "@types/sockjs-client": "^1.5.4",
     "axios": "^1.12.2",

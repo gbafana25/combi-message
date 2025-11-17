@@ -1,7 +1,7 @@
 use loco_rs::{config::Database, model::{self, ModelError, ModelResult}};
 use sea_orm::{FromQueryResult, QueryOrder, QuerySelect, entity::prelude::*};
 use serde::Serialize;
-use crate::{controllers::messages::SetPrivateParams, models::_entities::messages};
+use crate::{controllers::messages::SetPrivateParams, initializers::wsmessages::SetMessage, models::_entities::{apikeys, messages}};
 use loco_rs::prelude::*;
 
 pub use super::_entities::messages::{ActiveModel, Model, Entity};
@@ -65,6 +65,34 @@ impl ActiveModel {
         let ret_item = modified_item.update(db).await?;
         return format::json(ret_item);
     }
+
+    pub async fn create_item_ws(db: &DatabaseConnection, device_name: String, data: SetMessage) -> Model {
+        let mut activeitem: ActiveModel = Default::default();
+        data.update(&mut activeitem, device_name);
+        if data.apikey.is_empty() {
+            activeitem.isprivate = Set(Some(0));
+            activeitem.user_id = Set(0);
+        } else {
+            
+            match apikeys::Model::verify_key(db, &data.apikey).await {
+                Ok(akey) => {
+                    activeitem.isprivate = Set(Some(1));
+                    activeitem.user_id = Set(akey.user_id);
+                },
+                Err(_) => {
+                    
+                }
+            }
+        }
+        
+        return activeitem.insert(db).await.unwrap();
+    }
+
+    pub async fn update_item_ws(db: &DatabaseConnection, data: SetMessage, msg: Model) -> Model {
+        let mut modified_item: ActiveModel = msg.into();
+        modified_item.value = Set(Some(data.value));
+        return modified_item.update(db).await.unwrap();
+    }
 }
 
 // implement your custom finders, selectors oriented logic here
@@ -103,9 +131,16 @@ impl Entity {
         format::json(res)
     }
 
-    pub async fn get_all_ws(device_name: String, db: &DatabaseConnection, user_id: i32) -> Vec<Model> {
+    pub async fn get_all_ws(device_name: String, db: &DatabaseConnection) -> Vec<Model> {
         return messages::Entity::find()
             .filter(messages::Column::DeviceName.eq(device_name))
+            .all(db).await.unwrap();
+    }
+
+    pub async fn get_public_ws(device_name: String, db: &DatabaseConnection) -> Vec<Model> {
+        return messages::Entity::find()
+            .filter(messages::Column::DeviceName.eq(device_name))
+            .filter(messages::Column::Isprivate.eq(0))
             .all(db).await.unwrap();
     }
 }
